@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import plotly.express as px
 
 st.title("Zillow Home Value Index Dashboard")
 
@@ -32,6 +33,19 @@ if os.path.exists(file_path):
     # Show raw data
     st.subheader("Raw Data")
     st.dataframe(region_data)
+
+    # Create US map showing locations with data
+    latest_data = df_melted[df_melted["Date"] == df_melted["Date"].max()]
+    fig = px.scatter_geo(
+        latest_data,
+        locations="StateName",
+        locationmode="USA-states",
+        hover_name="RegionName",
+        size_max=10,
+        title="Locations with Zillow Data",
+        scope="usa"
+    )
+    st.plotly_chart(fig)
 
 else:
     st.error("CSV file not found. Please ensure the file is in the same directory as this script.")
