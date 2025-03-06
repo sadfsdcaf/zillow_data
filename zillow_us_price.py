@@ -73,7 +73,11 @@ if os.path.exists(file_path):
         import plotly.graph_objects as go
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=region_data["Date"], y=region_data["Home Value"], mode='lines', name=region))
+        
+        # Only add the region line if a specific county is selected
+        if region != "All Counties":
+            fig.add_trace(go.Scatter(x=region_data["Date"], y=region_data["Home Value"], mode='lines', name=region))
+        
         fig.add_trace(go.Scatter(x=state_data["Date"], y=state_data["Home Value"], mode='lines', name=f"{state} Avg"))
         fig.add_trace(go.Scatter(x=state_data["Date"], y=state_data["Annual Growth Rate"], mode='lines', name=f"{state} Growth Rate", yaxis='y2', line=dict(dash='dot')))
         
@@ -118,6 +122,5 @@ if os.path.exists(file_path):
     with trend_col2:
         st.subheader("Raw Data")
         st.dataframe(region_data[["Date", "RegionName", "StateName", "Home Value Formatted", "Annual Growth Rate"]], use_container_width=True)
-
 else:
     st.error("CSV file not found. Please ensure the file is in the correct directory.")
