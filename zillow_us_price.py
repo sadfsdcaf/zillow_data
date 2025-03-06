@@ -17,7 +17,7 @@ file_path = "Metro_zhvi_uc_sfr_tier_0.33_0.67_sm_sa_month.csv"
 def load_data():
     df = pd.read_csv(file_path)
     df_melted = df.melt(
-        id_vars=["SizeRank", "RegionName", "StateName"],  # Removed RegionID and RegionType
+        id_vars=["SizeRank", "RegionName"],
         var_name="Date",
         value_name="Home Value"
     )
@@ -26,9 +26,8 @@ def load_data():
     # Drop invalid dates
     df_melted = df_melted.dropna(subset=["Date"])
     
-    # Extract state from RegionName if missing
-    if df_melted["StateName"].isnull().any():
-        df_melted[["City", "StateName"]] = df_melted["RegionName"].str.rsplit(", ", n=1, expand=True)
+    # Extract state from RegionName
+    df_melted["StateName"] = df_melted["RegionName"].apply(lambda x: x.split(", ")[-1] if ", " in x else "United States")
     
     # Filter data to only include the past 10 years
     ten_years_ago = datetime.today().year - 10
@@ -40,7 +39,6 @@ def load_data():
     
     # Calculate state average home value
     state_avg = df_melted.groupby(["StateName", "Date"])["Home Value"].mean().reset_index()
-    state_avg["Home Value Formatted"] = state_avg["Home Value"].apply(lambda x: f"{x:,.0f}")
     
     # Sort data by most recent date
     df_melted = df_melted.sort_values(by="Date", ascending=False)
@@ -62,8 +60,10 @@ if os.path.exists(file_path):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader(f"Home Value Trends for {region}")
-        st.line_chart(region_data.set_index("Date")["Home Value"])
+        st.subheader(f"Home Value Trends for {region} and {region_data.iloc[0]['StateName']} Average")
+        combined_data = region_data.set_index("Date")["Home Value"].rename(region)
+        combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{region_data.iloc[0]['StateName']} Avg")
+        st.line_chart(pd.concat([combined_data, combined_state_data], axis=1))
     
     with col2:
         st.subheader("Locations with Zillow Data")
@@ -90,10 +90,6 @@ if os.path.exists(file_path):
     with trend_col2:
         price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
         st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if not pd.isna(price_change) else 0)
-    
-    # Show state average trend
-    st.subheader(f"Statewide Average Home Value Trends: {region_data.iloc[0]['StateName']}")
-    st.line_chart(state_data.set_index("Date")["Home Value"])
     
     # Show raw data in full-width section below
     st.subheader("Raw Data")
