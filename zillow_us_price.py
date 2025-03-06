@@ -53,22 +53,27 @@ def load_data():
 if os.path.exists(file_path):
     df_melted, state_avg = load_data()
     
+    # User selects state
+    state = st.selectbox("Select a State", df_melted["StateName"].unique())
+    df_melted = df_melted[df_melted["StateName"] == state]
+    
     # User selects region
     region = st.selectbox("Select a Region", df_melted["RegionName"].unique())
     
     # Filter data
     region_data = df_melted[df_melted["RegionName"] == region]
-    state_data = state_avg[state_avg["StateName"] == region_data.iloc[0]["StateName"]]
+    state_data = state_avg[state_avg["StateName"] == state]
     
-    # Create layout with two equal columns
-    col1, col2 = st.columns(2)
+    # Create layout with three equal columns
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader(f"Home Value Trends for {region} and {region_data.iloc[0]['StateName']} Average")
+        st.subheader(f"Home Value Trends for {region} and {state} Average")
         combined_data = region_data.set_index("Date")["Home Value"].rename(region)
-        combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{region_data.iloc[0]['StateName']} Avg")
+        combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{state} Avg")
         combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate")
-        combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{region_data.iloc[0]['StateName']} Growth Rate")
+        combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{state} Growth Rate")
+        combined_data.index = combined_data.index.year
         st.line_chart(pd.concat([combined_data, combined_state_data, combined_growth_data, combined_state_growth], axis=1))
     
     with col2:
@@ -85,21 +90,19 @@ if os.path.exists(file_path):
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # Show additional trend insights
-    st.subheader("Market Trends")
-    trend_col1, trend_col2 = st.columns(2)
+    # Create layout for market trends and raw data
+    trend_col1, trend_col2 = st.columns([1, 2])
     
     with trend_col1:
+        st.subheader("Market Trends")
         st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}")
         st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}")
-    
-    with trend_col2:
         price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
         st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if not pd.isna(price_change) else 0)
     
-    # Show raw data in full-width section below
-    st.subheader("Raw Data")
-    st.dataframe(region_data[["Date", "RegionName", "StateName", "Home Value Formatted", "Annual Growth Rate"]], use_container_width=True)
+    with trend_col2:
+        st.subheader("Raw Data")
+        st.dataframe(region_data[["Date", "RegionName", "StateName", "Home Value Formatted", "Annual Growth Rate"]], use_container_width=True)
 
 else:
     st.error("CSV file not found. Please ensure the file is in the correct directory.")
