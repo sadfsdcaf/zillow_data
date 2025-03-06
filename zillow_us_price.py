@@ -107,7 +107,7 @@ if os.path.exists(file_path):
     
     with col2:
         st.subheader("Locations with Zillow Data")
-        latest_data = df_melted[df_melted["Date"] == df_melted["Date"].max()]
+        latest_data = region_data[region_data["Date"] == region_data["Date"].max()]
         fig = px.scatter_geo(
             latest_data,
             locations="StateName",
@@ -124,10 +124,10 @@ if os.path.exists(file_path):
     
     with trend_col1:
         st.subheader("Market Trends")
-        st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}")
-        st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}")
-        price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
-        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if not pd.isna(price_change) else 0)
+        st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}") if not region_data.empty else st.metric("Highest Recent Value", "N/A")
+        st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}") if not region_data.empty else st.metric("Lowest Recent Value", "N/A")
+        price_change = (region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]) if not region_data.empty else None
+        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if price_change is not None else "N/A")
     
     with trend_col2:
         st.subheader("Raw Data")
