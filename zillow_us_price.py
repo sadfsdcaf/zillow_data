@@ -70,39 +70,20 @@ if os.path.exists(file_path):
     
     with col1:
         st.subheader(f"Home Value Trends for {region} and {state} Average")
-        combined_data = region_data.groupby("Date")["Home Value"].mean().rename(region)
-        combined_state_data = state_data.groupby("Date")["Home Value"].mean().rename(f"{state} Avg")
-        
-        combined_state_growth = state_data.groupby("Date")["Annual Growth Rate"].mean().rename(f"{state} Growth Rate")
-        combined_data.index = combined_data.index.year
-        combined_data = region_data.groupby("Date")["Home Value"].mean().rename(region)
-        combined_state_data = state_data.groupby("Date")["Home Value"].mean().rename(f"{state} Avg")
-        combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate").drop_duplicates()
-        combined_state_growth = state_data.groupby("Date")["Annual Growth Rate"].mean().rename(f"{state} Growth Rate")
-
-# Ensure all series have the same index before concatenation
-        aligned_index = combined_data.index.intersection(combined_state_data.index).intersection(combined_growth_data.index).intersection(combined_state_growth.index)
-
-        combined_data = combined_data.reindex(aligned_index)
-        combined_state_data = combined_state_data.reindex(aligned_index)
-        combined_growth_data = combined_growth_data.reindex(aligned_index)
-        combined_state_growth = combined_state_growth.reindex(aligned_index)
-
         import plotly.graph_objects as go
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=combined_data.index, y=combined_data, mode='lines', name=region))
-        fig.add_trace(go.Scatter(x=combined_state_data.index, y=combined_state_data, mode='lines', name=f"{state} Avg"))
+        fig.add_trace(go.Scatter(x=region_data["Date"], y=region_data["Home Value"], mode='lines', name=region))
+        fig.add_trace(go.Scatter(x=state_data["Date"], y=state_data["Home Value"], mode='lines', name=f"{state} Avg"))
+        fig.add_trace(go.Scatter(x=state_data["Date"], y=state_data["Annual Growth Rate"], mode='lines', name=f"{state} Growth Rate", yaxis='y2', line=dict(dash='dot')))
         
-        fig.add_trace(go.Scatter(x=combined_state_growth.index, y=combined_state_growth, mode='lines', name=f"{state} Growth Rate", yaxis='y2', line=dict(dash='dot')))
-
         fig.update_layout(
             title="Home Value and Growth Rate Trends",
             xaxis_title="Year",
             yaxis=dict(title="Home Value ($)"),
             yaxis2=dict(title="Growth Rate (%)", overlaying='y', side='right')
         )
-
+        
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
@@ -125,17 +106,14 @@ if os.path.exists(file_path):
     with trend_col1:
         st.subheader("Market Trends")
         if not region_data.empty:
-        st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}")
-        st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}")
-        price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
-        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change))
-    else:
-        st.metric("Highest Recent Value", "N/A")
-        st.metric("Lowest Recent Value", "N/A")
-        st.metric("Price Change (Last 10 Years)", "N/A")
-        st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}") if not region_data.empty else st.metric("Lowest Recent Value", "N/A")
-        price_change = (region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]) if not region_data.empty else None
-        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if price_change is not None else "N/A")
+            st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}")
+            st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}")
+            price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
+            st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change))
+        else:
+            st.metric("Highest Recent Value", "N/A")
+            st.metric("Lowest Recent Value", "N/A")
+            st.metric("Price Change (Last 10 Years)", "N/A")
     
     with trend_col2:
         st.subheader("Raw Data")
