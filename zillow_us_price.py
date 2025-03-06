@@ -54,11 +54,12 @@ if os.path.exists(file_path):
     df_melted, state_avg = load_data()
     
     # User selects state first
-    state = st.selectbox("Select a State", df_melted["StateName"].unique())
+    state = st.selectbox("Select a State/Region", sorted(df_melted["StateName"].unique()))
     filtered_df = df_melted[df_melted["StateName"] == state]
     
     # User selects region based on the selected state
-    region = st.selectbox("Select a Region", filtered_df["RegionName"].unique())
+    region_options = ["All Counties"] + sorted(filtered_df["RegionName"].unique())
+    region = st.selectbox("Select a County", region_options)
     
     # Filter data
     region_data = filtered_df[filtered_df["RegionName"] == region]
