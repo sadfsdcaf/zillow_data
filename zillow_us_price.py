@@ -74,7 +74,20 @@ if os.path.exists(file_path):
         combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate")
         combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{state} Growth Rate")
         combined_data.index = combined_data.index.year
-        st.line_chart(pd.concat([combined_data, combined_state_data, combined_growth_data, combined_state_growth], axis=1))
+        combined_data = region_data.set_index("Date")["Home Value"].rename(region).drop_duplicates()
+combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{state} Avg").drop_duplicates()
+combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate").drop_duplicates()
+combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{state} Growth Rate").drop_duplicates()
+
+# Ensure all series have the same index before concatenation
+aligned_index = combined_data.index.intersection(combined_state_data.index).intersection(combined_growth_data.index).intersection(combined_state_growth.index)
+
+combined_data = combined_data.reindex(aligned_index)
+combined_state_data = combined_state_data.reindex(aligned_index)
+combined_growth_data = combined_growth_data.reindex(aligned_index)
+combined_state_growth = combined_state_growth.reindex(aligned_index)
+
+st.line_chart(pd.concat([combined_data, combined_state_data, combined_growth_data, combined_state_growth], axis=1))
     
     with col2:
         st.subheader("Locations with Zillow Data")
