@@ -70,13 +70,18 @@ if os.path.exists(file_path):
     
     with col1:
         st.subheader(f"Home Value Trends for {region} and {state} Average")
-        combined_data = region_data.set_index("Date")["Home Value"].rename(region)
-        combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{state} Avg")
-        combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate")
-        combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{state} Growth Rate")
+        combined_data = region_data.groupby("Date")["Home Value"].mean().rename(region)
+        combined_state_data = state_data.groupby("Date")["Home Value"].mean().rename(f"{state} Avg")
+        
+        combined_state_growth = state_data.groupby("Date")["Annual Growth Rate"].mean().rename(f"{state} Growth Rate")
         combined_data.index = combined_data.index.year
-        combined_data = region_data.groupby("Date")["Home Value"].mean().rename(region)ined_statcombined_state_data = state_data.groupby("Date")["Home Value"].mean().rename(f"{state} Avg")ata = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate").drop_duplicates()
-        combined_state_growth = stcombined_state_growth = state_data.groupby("Date")["Annual Growth Rate"].mean().rename(f"{state} Growth Rate")ata.index.intersection(combined_state_data.index).intersection(combined_growth_data.index).intersection(combined_state_growth.index)
+        combined_data = region_data.groupby("Date")["Home Value"].mean().rename(region)
+        combined_state_data = state_data.groupby("Date")["Home Value"].mean().rename(f"{state} Avg")
+        combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate").drop_duplicates()
+        combined_state_growth = state_data.groupby("Date")["Annual Growth Rate"].mean().rename(f"{state} Growth Rate")
+
+# Ensure all series have the same index before concatenation
+        aligned_index = combined_data.index.intersection(combined_state_data.index).intersection(combined_growth_data.index).intersection(combined_state_growth.index)
 
         combined_data = combined_data.reindex(aligned_index)
         combined_state_data = combined_state_data.reindex(aligned_index)
