@@ -1,0 +1,3 @@
+echo plotly > requirements.txt
+echo pandas >> requirements.txt
+echo streamlit >> requirements.txt
