@@ -3,6 +3,9 @@ import pandas as pd
 import os
 import plotly.express as px
 
+# Set page layout to wide for more space
+st.set_page_config(layout="wide")
+
 st.title("Zillow Home Value Index Dashboard")
 
 # Define file path for CSV in the GitHub repo
@@ -26,8 +29,8 @@ if os.path.exists(file_path):
     # Filter data
     region_data = df_melted[df_melted["RegionName"] == region]
 
-    # Create layout with two columns
-    col1, col2 = st.columns([2, 3])
+    # Create layout with two equal columns to maximize space usage
+    col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.subheader(f"Home Value Trends for {region}")
@@ -45,11 +48,11 @@ if os.path.exists(file_path):
             title="Latest Home Values by Region",
             scope="usa"
         )
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
     
-    # Show raw data
+    # Show raw data in full-width section below
     st.subheader("Raw Data")
-    st.dataframe(region_data)
+    st.dataframe(region_data, use_container_width=True)
 
 else:
     st.error("CSV file not found. Please ensure the file is in the same directory as this script.")
