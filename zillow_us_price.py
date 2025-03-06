@@ -40,6 +40,10 @@ def load_data():
     # Calculate state average home value
     state_avg = df_melted.groupby(["StateName", "Date"])["Home Value"].mean().reset_index()
     
+    # Calculate annual growth rate
+    df_melted["Annual Growth Rate"] = df_melted.groupby("RegionName")["Home Value"].pct_change(periods=12) * 100
+    state_avg["Annual Growth Rate"] = state_avg.groupby("StateName")["Home Value"].pct_change(periods=12) * 100
+    
     # Sort data by most recent date
     df_melted = df_melted.sort_values(by="Date", ascending=False)
     
@@ -63,7 +67,9 @@ if os.path.exists(file_path):
         st.subheader(f"Home Value Trends for {region} and {region_data.iloc[0]['StateName']} Average")
         combined_data = region_data.set_index("Date")["Home Value"].rename(region)
         combined_state_data = state_data.set_index("Date")["Home Value"].rename(f"{region_data.iloc[0]['StateName']} Avg")
-        st.line_chart(pd.concat([combined_data, combined_state_data], axis=1))
+        combined_growth_data = region_data.set_index("Date")["Annual Growth Rate"].rename(f"{region} Growth Rate")
+        combined_state_growth = state_data.set_index("Date")["Annual Growth Rate"].rename(f"{region_data.iloc[0]['StateName']} Growth Rate")
+        st.line_chart(pd.concat([combined_data, combined_state_data, combined_growth_data, combined_state_growth], axis=1))
     
     with col2:
         st.subheader("Locations with Zillow Data")
@@ -93,7 +99,7 @@ if os.path.exists(file_path):
     
     # Show raw data in full-width section below
     st.subheader("Raw Data")
-    st.dataframe(region_data[["Date", "RegionName", "StateName", "Home Value Formatted"]], use_container_width=True)
+    st.dataframe(region_data[["Date", "RegionName", "StateName", "Home Value Formatted", "Annual Growth Rate"]], use_container_width=True)
 
 else:
     st.error("CSV file not found. Please ensure the file is in the correct directory.")
