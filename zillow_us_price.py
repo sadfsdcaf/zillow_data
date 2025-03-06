@@ -80,7 +80,7 @@ if os.path.exists(file_path):
     
     with trend_col2:
         price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
-        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=price_change)
+        st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if not pd.isna(price_change) else 0)
     
     # Show raw data in full-width section below
     st.subheader("Raw Data")
