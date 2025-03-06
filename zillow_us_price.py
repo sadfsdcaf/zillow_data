@@ -87,7 +87,22 @@ if os.path.exists(file_path):
         combined_growth_data = combined_growth_data.reindex(aligned_index)
         combined_state_growth = combined_state_growth.reindex(aligned_index)
 
-        st.line_chart(pd.concat([combined_data, combined_state_data, combined_growth_data, combined_state_growth], axis=1))
+        import plotly.graph_objects as go
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=combined_data.index, y=combined_data, mode='lines', name=region))
+        fig.add_trace(go.Scatter(x=combined_state_data.index, y=combined_state_data, mode='lines', name=f"{state} Avg"))
+        fig.add_trace(go.Scatter(x=combined_growth_data.index, y=combined_growth_data, mode='lines', name=f"{region} Growth Rate", yaxis='y2'))
+        fig.add_trace(go.Scatter(x=combined_state_growth.index, y=combined_state_growth, mode='lines', name=f"{state} Growth Rate", yaxis='y2'))
+
+        fig.update_layout(
+            title="Home Value and Growth Rate Trends",
+            xaxis_title="Year",
+            yaxis=dict(title="Home Value ($)"),
+            yaxis2=dict(title="Growth Rate (%)", overlaying='y', side='right')
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
     
     with col2:
         st.subheader("Locations with Zillow Data")
