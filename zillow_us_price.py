@@ -26,6 +26,10 @@ def load_data():
     # Drop invalid dates
     df_melted = df_melted.dropna(subset=["Date"])
     
+    # Extract state from RegionName if missing
+    if df_melted["StateName"].isnull().any():
+        df_melted[["City", "StateName"]] = df_melted["RegionName"].str.rsplit(", ", n=1, expand=True)
+    
     # Filter data to only include the past 10 years
     ten_years_ago = datetime.today().year - 10
     df_melted = df_melted[df_melted["Date"] >= f"{ten_years_ago}-01-01"]
@@ -34,20 +38,25 @@ def load_data():
     df_melted["Home Value"] = df_melted["Home Value"].fillna(0).astype(int)
     df_melted["Home Value Formatted"] = df_melted["Home Value"].apply(lambda x: f"{x:,}")
     
+    # Calculate state average home value
+    state_avg = df_melted.groupby(["StateName", "Date"])["Home Value"].mean().reset_index()
+    state_avg["Home Value Formatted"] = state_avg["Home Value"].apply(lambda x: f"{x:,.0f}")
+    
     # Sort data by most recent date
     df_melted = df_melted.sort_values(by="Date", ascending=False)
     
-    return df_melted
+    return df_melted, state_avg
 
 # Load data
 if os.path.exists(file_path):
-    df_melted = load_data()
+    df_melted, state_avg = load_data()
     
     # User selects region
     region = st.selectbox("Select a Region", df_melted["RegionName"].unique())
     
     # Filter data
     region_data = df_melted[df_melted["RegionName"] == region]
+    state_data = state_avg[state_avg["StateName"] == region_data.iloc[0]["StateName"]]
     
     # Create layout with two equal columns
     col1, col2 = st.columns(2)
@@ -81,6 +90,10 @@ if os.path.exists(file_path):
     with trend_col2:
         price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
         st.metric("Price Change (Last 10 Years)", f"${price_change:,}", delta=int(price_change) if not pd.isna(price_change) else 0)
+    
+    # Show state average trend
+    st.subheader(f"Statewide Average Home Value Trends: {region_data.iloc[0]['StateName']}")
+    st.line_chart(state_data.set_index("Date")["Home Value"])
     
     # Show raw data in full-width section below
     st.subheader("Raw Data")
