@@ -5,7 +5,7 @@ import os
 st.title("Zillow Home Value Index Dashboard")
 
 # Define file path for CSV in the GitHub repo
-file_path = "Metro_zhvi_uc_sfr_tier_0.67_sm_sa_month.csv"
+file_path = "zillow_data/Metro_zhvi_uc_sfr_tier_0.33_0.67_sm_sa_month.csv"
 
 # Check if file exists
 if os.path.exists(file_path):
@@ -34,4 +34,4 @@ if os.path.exists(file_path):
     st.dataframe(region_data)
 
 else:
-    st.error("CSV file not found. Please ensure the file is in the same directory as this script.")
+    st.error("CSV file not found. Please ensure the file is located in the 'zillow_data' directory inside the repository.")
