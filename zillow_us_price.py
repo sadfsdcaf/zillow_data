@@ -62,7 +62,7 @@ if os.path.exists(file_path):
     region = st.selectbox("Select a County", region_options)
     
     # Filter data
-    region_data = filtered_df[filtered_df["RegionName"] == region]
+    region_data = filtered_df if region == "All Counties" else filtered_df[filtered_df["RegionName"] == region]
     state_data = state_avg[state_avg["StateName"] == state]
     
     # Create layout with three equal columns
