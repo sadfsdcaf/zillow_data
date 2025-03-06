@@ -124,7 +124,7 @@ if os.path.exists(file_path):
     
     with trend_col1:
     st.subheader("Market Trends")
-            if not region_data.empty:
+    if not region_data.empty:
         st.metric("Highest Recent Value", f"${region_data['Home Value'].max():,}")
         st.metric("Lowest Recent Value", f"${region_data['Home Value'].min():,}")
         price_change = region_data.iloc[0]["Home Value"] - region_data.iloc[-1]["Home Value"]
