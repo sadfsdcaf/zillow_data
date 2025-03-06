@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import plotly.express as px
 
 st.title("Zillow Home Value Index Dashboard")
 
@@ -19,6 +20,10 @@ if os.path.exists(file_path):
     )
     df_melted["Date"] = pd.to_datetime(df_melted["Date"])
 
+    # Format Home Value as whole number with comma separator
+    df_melted["Home Value"] = df_melted["Home Value"].fillna(0).astype(int)
+    df_melted["Home Value Formatted"] = df_melted["Home Value"].apply(lambda x: f"{x:,}")
+
     # User selects region
     region = st.selectbox("Select a Region", df_melted["RegionName"].unique())
 
@@ -31,8 +36,20 @@ if os.path.exists(file_path):
 
     # Show raw data
     st.subheader("Raw Data")
-    st.dataframe(region_data)
+    st.dataframe(region_data[["RegionName", "Date", "Home Value Formatted"]])
+
+    # Create map for latest home values
+    latest_data = df_melted[df_melted["Date"] == df_melted["Date"].max()]
+    fig = px.scatter_geo(
+        latest_data,
+        locations="StateName",
+        locationmode="USA-states",
+        hover_name="RegionName",
+        size="Home Value",
+        title="Latest Home Values by Region",
+        scope="usa"
+    )
+    st.plotly_chart(fig)
 
 else:
     st.error("CSV file not found. Please ensure the file is in the same directory as this script.")
-
