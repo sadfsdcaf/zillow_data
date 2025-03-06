@@ -1,7 +1,7 @@
-import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import os
 from datetime import datetime
 
 # Set page layout to wide
@@ -21,7 +21,7 @@ def load_data():
         var_name="Date",
         value_name="Home Value"
     )
-    df_melted["Date"] = pd.to_datetime(df_melted["Date"])
+    df_melted["Date"] = pd.to_datetime(df_melted["Date"], errors="coerce")
     
     # Filter data to only include the past 10 years
     ten_years_ago = datetime.today().year - 10
@@ -34,6 +34,7 @@ def load_data():
     # Sort data by most recent date
     df_melted = df_melted.sort_values(by="Date", ascending=False)
     
+        df_melted = df_melted.dropna(subset=["Date"])
     return df_melted
 
 # Load data
